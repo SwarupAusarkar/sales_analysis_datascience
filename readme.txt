@@ -42,4 +42,4 @@ Ensure your CSV has the following columns:
 
 👨‍💻 Author  
 Created by Swarup Ausarkar  
-🔗 LinkedIn: www.linkedin.com/in/swarup-ausarkar  
+🔗 LinkedIn: www.linkedin.com/in/swarup-ausarkar

@@ -65,15 +65,26 @@ def show_trends():
 
     clear_plot()
 
+    # Take last 'n' days of data (ensuring index starts from 1)
+    last_n_days = 730  # Adjust this based on how much data you want to show
+    df_trimmed = df.tail(last_n_days).copy()
+    df_trimmed.reset_index(drop=True, inplace=True)
+    df_trimmed.index = df_trimmed.index + 1  # Make index start from 1
+
+    # Reduce number of plotted points dynamically
+    downsample_factor = max(1, len(df_trimmed) // 50)  # Adjust to control density
+    df_downsampled = df_trimmed.iloc[::downsample_factor]  # Pick every Nth point
+
     fig, ax = plt.subplots(figsize=(10, 5))
 
-    ax.plot(df.index, df["Daily_Revenue"], marker="o", linestyle="-", color="b", alpha=0.7)
+    ax.plot(df_downsampled.index, df_downsampled["Daily_Revenue"], marker="o", linestyle="-", color="b", alpha=0.7)
 
-    # Show labels only every 10 days
-    ax.set_xticks(df.index[::10])  
-    ax.set_xticklabels(df.index[::10], rotation=45, fontsize=8)
+    # Show labels every 20th point to reduce clutter
+    tick_spacing = max(1, len(df_downsampled) // 20)
+    ax.set_xticks(df_downsampled.index[::tick_spacing])
+    ax.set_xticklabels(df_downsampled.index[::tick_spacing], rotation=45, fontsize=8)
 
-    ax.set_title("Daily Sales Trend", fontsize=14, fontweight="bold")
+    ax.set_title("Daily Sales Trend of last 2 years", fontsize=14, fontweight="bold")
     ax.set_xlabel("Days", fontsize=12)
     ax.set_ylabel("Revenue (₹)", fontsize=12)
     ax.grid(True, linestyle="--", alpha=0.5)
@@ -82,7 +93,6 @@ def show_trends():
     canvas.get_tk_widget().pack()
     canvas.draw()
 
-    # Add interactive toolbar
     toolbar = NavigationToolbar2Tk(canvas, toolbar_frame)
     toolbar.update()
     
@@ -93,33 +103,37 @@ def show_weekly_trends():
         return
 
     clear_plot()
-    
-    # Ensure 'Week' column exists for grouping
-    df["Week"] = df.index // 7  # Assign week numbers (assuming sequential days)
 
-    weekly_sales = df.groupby("Week")["Daily_Revenue"].sum()
+    # Take last 'n' weeks of data (ensuring index starts from 1)
+    last_n_weeks = 104  # Adjust this based on how much data you want to show
+    df_trimmed = df.tail(last_n_weeks * 7).copy()  # Last N weeks (each week = 7 days)
 
-    fig, ax = plt.subplots(figsize=(8, 5))
-    
-    bars = ax.bar(weekly_sales.index, weekly_sales.values, color="orange", alpha=0.8)
+    # Group by week and sum revenue
+    df_weekly = df_trimmed.groupby(df_trimmed.index // 7).sum()
+    df_weekly.index = range(1, len(df_weekly) + 1)  # Make index start from 1
 
-    # Add labels but only for every 5th bar
-    for i, bar in enumerate(bars):
-        if i % 5 == 0:  
-            yval = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width()/2, yval, f"{int(yval)}", ha="center", va="bottom", fontsize=8, rotation=30)
+    # Reduce number of plotted points dynamically
+    downsample_factor = max(1, len(df_weekly) // 50)  # Adjust to control density
+    df_downsampled = df_weekly.iloc[::downsample_factor]  # Pick every Nth week
 
-    ax.set_title("Weekly Sales Trend", fontsize=14, fontweight="bold")
+    fig, ax = plt.subplots(figsize=(10, 5))
+
+    ax.plot(df_downsampled.index, df_downsampled["Daily_Revenue"], marker="o", linestyle="-", color="g", alpha=0.7)
+
+    # Show labels every 10th point to reduce clutter
+    tick_spacing = max(1, len(df_downsampled) // 10)
+    ax.set_xticks(df_downsampled.index[::tick_spacing])
+    ax.set_xticklabels(df_downsampled.index[::tick_spacing], rotation=45, fontsize=8)
+
+    ax.set_title("Weekly Sales Trend of last 24 months", fontsize=14, fontweight="bold")
     ax.set_xlabel("Weeks", fontsize=12)
-    ax.set_ylabel("Total Weekly Revenue (₹)", fontsize=12)
-    ax.set_xticks(weekly_sales.index[::5])  # Reduce x-axis labels
-    ax.grid(axis="y", linestyle="--", alpha=0.5)
+    ax.set_ylabel("Revenue (₹)", fontsize=12)
+    ax.grid(True, linestyle="--", alpha=0.5)
 
     canvas = FigureCanvasTkAgg(fig, master=plot_frame)
     canvas.get_tk_widget().pack()
     canvas.draw()
 
-    # Add interactive toolbar
     toolbar = NavigationToolbar2Tk(canvas, toolbar_frame)
     toolbar.update()
     
@@ -130,18 +144,33 @@ def show_monthly_trends():
 
     clear_plot()
 
-    df["Month"] = df.index // 30  # Assuming 30 days per month
+    # Take last 'n' months of data (ensuring index starts from 1)
+    last_n_months = 24  # Adjustable: Last 24 months (2 years)
+    df_trimmed = df.tail(last_n_months * 30).copy()  # Assuming each month ≈ 30 days
 
-    monthly_sales = df.groupby("Month")["Daily_Revenue"].sum()
+    # Group by month and sum revenue
+    df_monthly = df_trimmed.groupby(df_trimmed.index // 30).sum()
+    df_monthly.index = range(1, len(df_monthly) + 1)  # Make index start from 1
 
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.bar(monthly_sales.index, monthly_sales.values, color="green", alpha=0.7)
+    # Reduce number of plotted points dynamically
+    downsample_factor = max(1, len(df_monthly) // 15)  # Adjust based on graph clarity
+    df_downsampled = df_monthly.iloc[::downsample_factor]
 
-    ax.set_title("Monthly Sales Trend", fontsize=14, fontweight="bold")
+    fig, ax = plt.subplots(figsize=(10, 5))
+
+    ax.plot(df_downsampled.index, df_downsampled["Daily_Revenue"], marker="o", linestyle="-", color="b", alpha=0.7)
+
+    # Reduce x-axis label clutter
+    tick_spacing = max(1, len(df_downsampled) // 10)
+    ax.set_xticks(df_downsampled.index[::tick_spacing])
+    ax.set_xticklabels(df_downsampled.index[::tick_spacing], rotation=45, fontsize=8)
+
+    ax.set_title("Monthly Sales Trend of last 2 years", fontsize=14, fontweight="bold")
     ax.set_xlabel("Months", fontsize=12)
-    ax.set_ylabel("Total Monthly Revenue (₹)", fontsize=12)
-    ax.set_xticks(monthly_sales.index[::2])  # Show labels every 2 months
+    ax.set_ylabel("Revenue (₹)", fontsize=12)
+    ax.grid(True, linestyle="--", alpha=0.5)
 
+    # Ensure it appears properly in the GUI
     canvas = FigureCanvasTkAgg(fig, master=plot_frame)
     canvas.get_tk_widget().pack()
     canvas.draw()
@@ -156,46 +185,53 @@ def forecast_sales():
 
     clear_plot()
 
-    df["Day_Number"] = np.arange(len(df))  
+    # Ensure required column exists
+    if "Daily_Revenue" not in df.columns:
+        messagebox.showerror("Error", "'Daily_Revenue' column not found in dataset!")
+        return
 
-    X = df[["Day_Number"]]  
-    y = df["Daily_Revenue"]  
+    df_copy = df.copy()
+    df_copy["Day_Number"] = np.arange(1, len(df_copy) + 1)  # Ensure numbering starts from 1
+
+    X = df_copy[["Day_Number"]]
+    y = df_copy["Daily_Revenue"]
 
     model = LinearRegression()
     model.fit(X, y)
 
-    # **Show only last 25% of data before forecasting**
-    last_25_percent = int(len(df) * 0.25)
+    # Show only last 25% of data before forecasting
+    last_25_percent = int(len(df_copy) * 0.25)
     X_recent = X.iloc[-last_25_percent:]
     y_recent = y.iloc[-last_25_percent:]
 
-    # **Generate Predictions for Next 30 Days**
-    future_days = np.arange(len(df), len(df) + 30).reshape(-1, 1)
-    future_days_df = pd.DataFrame(future_days, columns=["Day_Number"])  
-    predicted_sales = model.predict(future_days_df)
+    # Generate Predictions for Next 30 Days
+    future_days = np.arange(len(df_copy) + 1, len(df_copy) + 31).reshape(-1, 1)  # Next 30 days
+    predicted_sales = model.predict(future_days)
 
     fig, ax = plt.subplots(figsize=(10, 5))
 
-    # **Plot last 25% actual data**
-    ax.plot(X_recent, y_recent, label="Recent Sales Data", color="blue", linewidth=2)
+    # Fix X-axis scaling issue
+    min_x = X_recent["Day_Number"].min()
 
-    # **Plot forecasted trend line (NO dots or labels)**
-    ax.plot(future_days, predicted_sales, label="Predicted Sales", color="red", linestyle="dashed", linewidth=2)
+    # Plot recent actual data
+    ax.plot(X_recent["Day_Number"] - min_x + 1, y_recent, label="Recent Sales Data", color="blue", linewidth=2)
 
-    # **Confidence Zone (Shaded Area)**
+    # Plot forecasted trend line
+    ax.plot(future_days - min_x + 1, predicted_sales, label="Predicted Sales", color="red", linestyle="dashed", linewidth=2)
+
+    # Confidence Range (90%-110%)
     ax.fill_between(
-        future_days.flatten(), 
-        predicted_sales * 0.9,  # Lower bound (90% confidence)
-        predicted_sales * 1.1,  # Upper bound (110% confidence)
-        color="red", 
+        (future_days - min_x + 1).flatten(),
+        predicted_sales * 0.9,
+        predicted_sales * 1.1,
+        color="red",
         alpha=0.2,
         label="Confidence Range"
     )
 
-    # **Fix: Adjust X-axis ticks for better readability**
-    ax.xaxis.set_major_locator(ticker.MultipleLocator(5))  # Show every 5 days
-    ax.xaxis.set_minor_locator(ticker.MultipleLocator(1))  # Small ticks for each day
-    plt.xticks(rotation=45)  # Rotate labels slightly for better spacing
+    # Adjust X-axis ticks
+    max_visible_x = (future_days - min_x + 1).max()
+    ax.set_xticks(range(1, max_visible_x + 1, max_visible_x // 10))
 
     ax.set_title("Sales Forecast (Next 30 Days)", fontsize=14, fontweight="bold")
     ax.set_xlabel("Days", fontsize=12)
@@ -203,6 +239,7 @@ def forecast_sales():
     ax.legend()
     ax.grid(True, linestyle="--", alpha=0.5)
 
+    # Embed plot into Tkinter
     canvas = FigureCanvasTkAgg(fig, master=plot_frame)
     canvas.get_tk_widget().pack()
     canvas.draw()
@@ -219,6 +256,9 @@ btn_trends.pack(side=tk.LEFT, padx=10)
 
 btn_weekly = ttk.Button(button_frame, text="Show Weekly Trends", command=show_weekly_trends)
 btn_weekly.pack(side=tk.LEFT, padx=10)
+
+btn_monthly = ttk.Button(button_frame, text="Show Monthly Trends", command=show_monthly_trends)
+btn_monthly.pack(side=tk.LEFT, padx=5, pady=5)
 
 forecast_button = ttk.Button(button_frame, text="Forecast Sales", command=forecast_sales)
 forecast_button.pack(side=tk.LEFT, padx=10)
