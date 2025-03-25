@@ -1,4 +1,4 @@
-A Python-based Data Science Project with Tkinter GUI for Visualizing and Forecasting Sales Trends.  
+### A Python-based Data Science Project with Tkinter GUI for Visualizing and Forecasting Sales Trends.  
 
 🚀 Features  
 - 📂 Open CSV Files – Load any sales dataset dynamically  
@@ -36,8 +36,7 @@ Ensure your CSV has the following columns:
 - 📊 Visualization: Matplotlib, Seaborn  
 
 🔮 Future Improvements  
-- 🤖 Add more machine learning models for better forecasting  
-- 🏪 Support multiple coffee shops in one dataset  
+- 🤖 Add more machine learning models for better forecasting   
 - 🌙 Dark mode for the UI  
 
 👨‍💻 Author  
