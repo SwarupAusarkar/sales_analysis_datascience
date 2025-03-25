@@ -246,7 +246,6 @@ def forecast_sales():
 
     toolbar = NavigationToolbar2Tk(canvas, toolbar_frame)
     toolbar.update()
-
 # Buttons
 btn_open = ttk.Button(button_frame, text="Open CSV", command=open_csv)
 btn_open.pack(side=tk.LEFT, padx=10)
